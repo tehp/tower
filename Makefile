@@ -1,4 +1,4 @@
-OBJS = main.cpp terrain.cpp
+OBJS = main.cpp terrain.cpp path.cpp
 
 OBJ_NAME = tower
 

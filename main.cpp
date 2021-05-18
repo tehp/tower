@@ -17,7 +17,6 @@ int main(int argc, char *args[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     } else {
-        //Create window
         window = SDL_CreateWindow("tower", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
                                   SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
         if (window == NULL) {
@@ -40,13 +39,10 @@ int main(int argc, char *args[]) {
     Terrain *t = new Terrain(SCREEN_WIDTH, SCREEN_HEIGHT, 8.0);
 
     std::cout << "x: " << t->getWidth() << ", y: " << t->getHeight() << std::endl;
-    std::cout << t->map.size() << std::endl;
 
     for (int x = 0; x < (t->getWidth()); x++) {
         for (int y = 0; y < (t->getHeight()); y++) {
             double height = t->map[y][x];
-            
-            Uint8 h = (unsigned int)(height * 255);
 
             SDL_Color *color = new SDL_Color();
 
@@ -149,10 +145,24 @@ int main(int argc, char *args[]) {
                 }
             }
 
+            if ((abs(t->ax - x) < 5 && abs(t->ay - y) < 5) || (abs(t->bx - x) < 5 && abs(t->by - y) < 5)) {
+                color->r = 255;
+                color->g = 0;
+                color->b = 0;
+            }
+
             SDL_Rect fillRect = { x, y, 1, 1 };
             SDL_SetRenderDrawColor( renderer, color->r, color->g, color->b, 0xFF );
             SDL_RenderFillRect( renderer, &fillRect );
         }
+    }
+
+    std::vector<std::pair<int,int>> paths = t->getPaths();
+
+    for(std::vector<std::pair<int,int>>::iterator it = paths.begin(); it != paths.end(); it++) {
+        SDL_Rect fillRect = { it->first, it->second, 2, 2 };
+        SDL_SetRenderDrawColor( renderer, 255, 0, 0, 0xFF );
+        SDL_RenderFillRect( renderer, &fillRect );
     }
 
     SDL_RenderPresent( renderer );
