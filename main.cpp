@@ -4,8 +4,8 @@
 
 #include "terrain.h"
 
-const int SCREEN_WIDTH = 1880;
-const int SCREEN_HEIGHT = 1020;
+const int SCREEN_WIDTH = 1800;
+const int SCREEN_HEIGHT = 980;
 
 int main(int argc, char *args[]) {
     SDL_Window *window = NULL;
@@ -13,6 +13,8 @@ int main(int argc, char *args[]) {
     SDL_Renderer* renderer = NULL;
 
     SDL_Surface *screenSurface = NULL;
+
+    Terrain *t = new Terrain(SCREEN_WIDTH, SCREEN_HEIGHT, 8.0);
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -36,9 +38,9 @@ int main(int argc, char *args[]) {
     bool quit = false;
     SDL_Event e;
 
-    Terrain *t = new Terrain(SCREEN_WIDTH, SCREEN_HEIGHT, 8.0);
-
-    std::cout << "x: " << t->getWidth() << ", y: " << t->getHeight() << std::endl;
+    std::cout << "\nx: " << t->getWidth() << ", y: " << t->getHeight() << std::endl;
+    
+    SDL_Color color_map[t->getHeight()][t->getWidth()];
 
     for (int x = 0; x < (t->getWidth()); x++) {
         for (int y = 0; y < (t->getHeight()); y++) {
@@ -121,27 +123,15 @@ int main(int argc, char *args[]) {
                 color->b = 145;
             }
 
-            // shadows
-            if (y > 1 && x > 1) {
-                if (t->map[y-1][x-1] > t->map[y][x]) {
-                    if (t->map[y][x] > 0.24) {
-                        color->r -= 30;
-                        color->g -= 30;
-                        color->b -= 30;
-                    }
-
-                }
-            }
-
             // sun
             if (y < (t->getHeight() - 1) && x < (t->getWidth() - 1)) {
                 if ((t->map[y+1][x+1] - t->map[y][x]) >= 0.0075) {
                     if (t->map[y][x] > 0.24 && t->map[y][x] < 0.8) {
-                        color->r += 26;
-                        color->g += 26;
-                        color->b += 26;
+			int sun_mod = 24;
+                        color->r += sun_mod;
+                        color->g += sun_mod;
+                        color->b += sun_mod;
                     }
-
                 }
             }
 
@@ -151,8 +141,35 @@ int main(int argc, char *args[]) {
                 color->b = 0;
             }
 
+	    color_map[y][x] = *color;
+
+	}
+    }
+
+    
+    for (int x = 0; x < (t->getWidth()); x++) {
+        for (int y = 0; y < (t->getHeight()); y++) {
+
+            // shadows
+            if (y > 1 && x > 1) {
+                if (t->map[y-1][x-1] > t->map[y][x]) {
+                    if (t->map[y][x] > 0.24) {
+			int shadow_mod = 40;
+                        //color_map[y][x].r -= shadow_mod;
+                        //color_map[y][x].g -= shadow_mod;
+                        //color_map[y][x].b -= shadow_mod;
+			for (int i = 0; i < 2; i++) {
+				if ((x < (t->getWidth() - 20)) && (y < (t->getHeight() - 20))) {
+					color_map[y+i][x+i].r -= 5;
+					color_map[y+i][x+i].g -= 5;
+					color_map[y+i][x+i].b -= 5;
+				}
+			}
+                    }
+                }
+            }
             SDL_Rect fillRect = { x, y, 1, 1 };
-            SDL_SetRenderDrawColor( renderer, color->r, color->g, color->b, 0xFF );
+            SDL_SetRenderDrawColor( renderer, color_map[y][x].r, color_map[y][x].g, color_map[y][x].b, 0xFF );
             SDL_RenderFillRect( renderer, &fillRect );
         }
     }

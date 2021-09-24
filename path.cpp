@@ -48,6 +48,11 @@ std::vector<std::pair<int,int>> Path::getPath() {
     return path;
 }
 
+void print_progress_bar(double progress) {
+	int progress_round = (int)(progress * 100);
+	std::cout << "\rFinding suitable paths: " << progress_round << "%";
+}
+
 void Path::a_star() {
     std::cout << "Creating path. Method: A*" << std::endl;
 
@@ -67,6 +72,12 @@ void Path::a_star() {
 
     open.push_back(start);
 
+    int init_dist_x = std::abs(start_x - end_x);
+    int init_dist_y = std::abs(start_y - end_y);
+    int init_dist_sum = init_dist_x + init_dist_y;
+
+    std::cout << std::endl;
+
     while (open.size() > 0) {
         sort(open.begin(), open.end(), [](const Node& lhs, const Node& rhs) {
             return lhs.f > rhs.f;
@@ -75,17 +86,23 @@ void Path::a_star() {
         Node current = open.back();
         open.pop_back();
         closed.push_back(current);
+	
+	int dist_x = std::abs(current.x - end_x);
+	int dist_y = std::abs(current.y - end_y);
+	int dist_sum = dist_x + dist_y;
+
+	int dist_progress = init_dist_sum - dist_sum;
+	double progress_percent = 1.0-((double)dist_sum / (double)init_dist_sum);
+
+	print_progress_bar(progress_percent);
 
         // if done
         if (current.x == end_x && current.y == end_y) {            
             std::pair<int,int> c(current.x, current.y);
             std::pair<int,int> p;
 
-            // std::cout << current.x << "," << current.y << " from " << parents[c].first << "," << parents[c].second << std::endl;
-
             while (c.first != start_x || c.second != start_y) {
                 p = parents[c];
-                // std::cout << p.first << "," << p.second << std::endl;
                 c = p;
                 path.push_back(std::pair<int,int> (c.first, c.second));
             }
@@ -113,8 +130,6 @@ void Path::a_star() {
         
         for(std::vector<Node>::iterator it = current_neighbors.begin(); it != current_neighbors.end(); it++) {
             
-            // float step = abs(map[it->y][it->x] - map[current.y][current.x]);
-
             if (map[it->y][it->x] < 0.28) {
                 continue;
             }
@@ -150,8 +165,6 @@ void Path::a_star() {
             std::pair<int,int> p(it->x,it->y);
             std::pair<int,int> c(current.x,current.y);
 
-            
-
             if (neighbor_in_open) {
                 for(std::vector<Node>::iterator open_it = open.begin(); open_it != open.end(); open_it++) {
                     if (open_it->x == it->x && open_it->y == it->y) {
@@ -162,7 +175,6 @@ void Path::a_star() {
                             std::pair<int,int> i(it->x,it->y);
 
                             if (o != i) {
-                                // std::cout << "same" << std::endl;
                                 parents[o] = i;
                             }
 
@@ -176,7 +188,6 @@ void Path::a_star() {
             } else {
                 open.push_back(*it);
                 if (p != c) {
-                    // std::cout << "same" << std::endl;
                     parents[p] = c;
                 }
             }
